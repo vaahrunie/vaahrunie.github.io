@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Ultimate Fitness Tracker</title>
+    <link href="https://fonts.googleapis.com/css2?family=Pangolin&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Pangolin', cursive;
+            background: linear-gradient(to right, #141e30, #243b55);
+            text-align: center;
+            color: white;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 { font-size: 52px; }         /* Bigger title */
+        h2 { font-size: 32px; }         /* Bigger section titles */
+
+        .container {
+            background: rgba(255,255,255,0.08);
+            padding: 25px;
+            border-radius: 15px;
+            max-width: 550px;
+            margin: auto;
+            margin-bottom: 25px;
+        }
+
+        input {
+            padding: 15px;
+            margin: 10px;
+            width: 85%;
+            border-radius: 10px;
+            border: none;
+            font-family: 'Pangolin', cursive;
+            font-size: 20px;              /* Bigger input text */
+        }
+
+        button {
+            padding: 15px 25px;
+            border-radius: 12px;
+            border: none;
+            background: #00c6ff;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            font-family: 'Pangolin', cursive;
+            font-size: 20px;              /* Bigger buttons */
+        }
+
+        ul { 
+            list-style: none; 
+            padding: 0;
+            font-size: 20px;              /* Bigger list items */
+        }
+
+        .summary-box {
+            font-size: 24px;              /* Bigger summary numbers */
+            margin: 10px 0;
+            font-weight: bold;
+        }
+
+        .progress-bar {
+            width: 100%;
+            background: rgba(255,255,255,0.2);
+            border-radius: 25px;
+            overflow: hidden;
+            margin-top: 15px;
+        }
+
+        .progress {
+            height: 30px;                 /* Taller progress bar */
+            width: 0%;
+            background: orange;
+            transition: 0.4s;
+        }
+    </style>
+</head>
+<body>
+
+<h1>🔥 Ultimate Fitness Tracker</h1>
+
+<!-- FOOD SECTION -->
+<div class="container">
+    <h2>🍽 Food Intake (Example: 2 eggs)</h2>
+    <input type="text" id="foodInput" placeholder="Type like: 2 eggs">
+    <button onclick="addFood()">Add Food</button>
+    <ul id="foodList"></ul>
+</div>
+
+<!-- WORKOUT SECTION -->
+<div class="container">
+    <h2>🏋️ Workout (Example: running 30)</h2>
+    <input type="text" id="workoutInput" placeholder="Workout type + duration min">
+    <button onclick="addWorkout()">Add Workout</button>
+    <ul id="workoutList"></ul>
+</div>
+
+<!-- SUMMARY DASHBOARD -->
+<div class="container">
+    <h2>📊 Daily Summary</h2>
+    <div class="summary-box">Calories Eaten: <span id="totalCalories">0</span> kcal</div>
+    <div class="summary-box">Calories Burned: <span id="totalBurned">0</span> kcal</div>
+    <div class="summary-box">Net Calories: <span id="netCalories">0</span> kcal</div>
+    <div class="summary-box">Protein: <span id="totalProtein">0</span>g / 90g</div>
+    <div class="progress-bar"><div class="progress" id="proteinProgress"></div></div>
+    <div class="summary-box" id="goalMessage">90g remaining</div>
+</div>
+
+<script>
+let totalCalories = 0;
+let totalProtein = 0;
+let totalBurned = 0;
+const proteinGoal = 90;
+
+const foodDatabase = {
+    "egg": { calories: 78, protein: 6 },
+    "eggs": { calories: 78, protein: 6 },
+    "chicken breast": { calories: 165, protein: 31 },
+    "protein shake": { calories: 120, protein: 24 },
+    "greek yogurt": { calories: 100, protein: 17 },
+    "salmon": { calories: 208, protein: 20 },
+    "milk": { calories: 103, protein: 8 },
+    "oats": { calories: 150, protein: 5 },
+    "rice": { calories: 206, protein: 4 }
+};
+
+const workoutCaloriesPerMin = {
+    "running": 10,
+    "cycling": 8,
+    "swimming": 9,
+    "jump rope": 12,
+    "weightlifting": 6,
+    "walking": 4
+};
+
+function addFood() {
+    let input = document.getElementById("foodInput").value.toLowerCase().trim();
+    let parts = input.split(" ");
+    let quantity = parseInt(parts[0]);
+    let foodName;
+
+    if (!isNaN(quantity)) {
+        foodName = parts.slice(1).join(" ");
+    } else {
+        quantity = 1;
+        foodName = input;
+    }
+
+    if (foodDatabase[foodName]) {
+        let food = foodDatabase[foodName];
+        let calories = food.calories * quantity;
+        let protein = food.protein * quantity;
+
+        totalCalories += calories;
+        totalProtein += protein;
+
+        let li = document.createElement("li");
+        li.textContent = quantity + " " + foodName + " = " + calories + " kcal | " + protein + "g protein";
+        document.getElementById("foodList").appendChild(li);
+
+        document.getElementById("totalCalories").textContent = totalCalories;
+        document.getElementById("totalProtein").textContent = totalProtein;
+
+        updateProteinProgress();
+        updateNetCalories();
+
+        document.getElementById("foodInput").value = "";
+    } else {
+        alert("Food not in database yet! Add it inside the code 😊");
+    }
+}
+
+function addWorkout() {
+    let input = document.getElementById("workoutInput").value.toLowerCase().trim();
+    let parts = input.split(" ");
+    let type = parts[0];
+    let duration = parseInt(parts[1]);
+
+    if (!type || isNaN(duration)) {
+        alert("Enter valid workout (type + duration in min)");
+        return;
+    }
+
+    let caloriesBurnedPerMin = workoutCaloriesPerMin[type];
+    if (!caloriesBurnedPerMin) {
+        alert("Workout type not recognized! Add it to the database.");
+        return;
+    }
+
+    let calories = caloriesBurnedPerMin * duration;
+    totalBurned += calories;
+
+    let li = document.createElement("li");
+    li.textContent = type + " " + duration + " min = " + calories + " kcal burned";
+    document.getElementById("workoutList").appendChild(li);
+
+    document.getElementById("totalBurned").textContent = totalBurned;
+    updateNetCalories();
+
+    document.getElementById("workoutInput").value = "";
+}
+
+function updateNetCalories() {
+    let net = totalCalories - totalBurned;
+    document.getElementById("netCalories").textContent = net;
+}
+
+function updateProteinProgress() {
+    let percent = (totalProtein / proteinGoal) * 100;
+    if (percent > 100) percent = 100;
+
+    let progressBar = document.getElementById("proteinProgress");
+    progressBar.style.width = percent + "%";
+
+    let remaining = proteinGoal - totalProtein;
+
+    if (totalProtein >= proteinGoal) {
+        progressBar.style.background = "limegreen";
+        document.getElementById("goalMessage").textContent = "🎉 Goal reached! You're above 90g!";
+    } else {
+        progressBar.style.background = "orange";
+        document.getElementById("goalMessage").textContent = remaining + "g remaining";
+    }
+}
+</script>
+
+</body>
+</html>
